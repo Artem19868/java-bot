@@ -14,15 +14,16 @@ public class Bot extends TelegramLongPollingBot {
     private CommandService commandService;
     @Resolve
     private Logger logger;
+
     @Override
     public String getBotUsername() {
         // Верните имя вашего бота
-        return "YOUR_BOT_USERNAME";
+        return "";
     }
 
     @Override
     public String getBotToken() {
-        return "YOUR_BOT_TOKEN";
+        return "";
     }
 
 
@@ -31,25 +32,37 @@ public class Bot extends TelegramLongPollingBot {
         logger.debug("Получено новое обновление: " + update.toString());
 
         // Проверяем, есть ли в обновлении сообщение и текст сообщения
-        if (update.hasMessage() && update.getMessage().hasText()) {
-            String command = update.getMessage().getText();
-            String chatId = update.getMessage().getChatId().toString();
+        if (update.hasMessage()) {
+            if (update.getMessage().hasText()){
+                String command = update.getMessage().getText();
+                String chatId = update.getMessage().getChatId().toString();
 
-            logger.info("Обработка команды: " + command);
+                logger.info("Обработка команды: " + command);
 
-            try {
-                if (command.equalsIgnoreCase("/getHeroes")) {
-                    // Вызов метода getHeroes из CommandService
-                    execute(commandService.getHeroes(chatId));
-
-                } else if (command.equalsIgnoreCase("/help")) {
-                    // Вызов метода getHelp из CommandService
-                     execute(commandService.getHelp(chatId));
+                try {
+                    if (command.equalsIgnoreCase("/start")) {
+                        execute(commandService.startMessage(chatId));
+                    } else if (command.equalsIgnoreCase("/help")) {
+                        // Вызов метода getHelp из CommandService
+                        execute(commandService.getHelp(chatId));
+                    }
+                    // Отправляем сообщение
+                } catch (TelegramApiException e) {
+                    logger.error("Ошибка при отправке сообщения в Telegram: " + e.getMessage());
                 }
-                // Отправляем сообщение
-            } catch (TelegramApiException e) {
-                logger.error("Ошибка при отправке сообщения в Telegram: " + e.getMessage());
+            }  else if (update.getMessage().hasLocation()) {
+                String chatId = update.getMessage().getChatId().toString();
+
+                float latitude = update.getMessage().getLocation().getLatitude().floatValue();
+                float longitude = update.getMessage().getLocation().getLongitude().floatValue();
+
+                try {
+                    execute(commandService.getWeather(chatId, latitude,longitude));
+                } catch (TelegramApiException e) {
+                    logger.error("Ошибка при отправке сообщения в Telegram: " + e.getMessage());
+                }
             }
+
         }
     }
 }

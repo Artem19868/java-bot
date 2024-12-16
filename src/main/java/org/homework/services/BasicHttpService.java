@@ -23,7 +23,12 @@ public class BasicHttpService implements HttpService {
 
     @Override
     public String sendGetRequest(String url, Map<String, String> headers) throws IOException, URISyntaxException {
-        logger.debug("Отправка GET-запроса по URL: " + url);
+        if (logger == null){
+            System.out.println("logger == null");
+        } else {
+            logger.debug("Отправка GET-запроса по URL: " + url);
+        }
+
 
         try (CloseableHttpClient client = HttpClients.createDefault()) {
             HttpGet request = new HttpGet(url);
